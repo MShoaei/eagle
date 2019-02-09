@@ -9,6 +9,7 @@ import (
 
 	"github.com/MShoaei/command_control/models"
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
+	csrf "github.com/gobuffalo/mw-csrf"
 	i18n "github.com/gobuffalo/mw-i18n"
 	"github.com/gobuffalo/packr"
 )
@@ -47,7 +48,7 @@ func App() *buffalo.App {
 
 		// Protect against CSRF attacks. https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
 		// Remove to disable this.
-		// app.Use(csrf.New)
+		app.Use(csrf.New)
 
 		// Wraps each request in a transaction.
 		//  c.Value("tx").(*pop.Connection)
@@ -57,7 +58,17 @@ func App() *buffalo.App {
 		// Setup and use translations:
 		app.Use(translations())
 
+		app.Use(SetCurrentUser)
+		app.Use(Authorize)
+
 		app.GET("/", HomeHandler)
+
+		app.GET("/users/new", UsersNew)
+		app.POST("/users", UsersCreate)
+		app.GET("/signin", AuthNew)
+		app.POST("/signin", AuthCreate)
+		app.DELETE("/signout", AuthDestroy)
+		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
