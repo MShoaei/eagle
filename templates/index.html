@@ -12,6 +12,7 @@
 
 <%= if (current_user) { %>
 <p>We logged in</p>
+<a href="/signout" data-method="DELETE" class="btn btn-danger">sign out</a>
 <% } else { %>
 <div class="container-fluid cloudy-knoxville-gradient h-100 d-flex align-items-center justify-content-center">
   <div class="row justify-content-around">

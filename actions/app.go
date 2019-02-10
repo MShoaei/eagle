@@ -60,17 +60,24 @@ func App() *buffalo.App {
 
 		app.Use(SetCurrentUser)
 		app.Use(Authorize)
+		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate, RegisterHandler)
+		app.Middleware.Skip(csrf.New, RegisterHandler)
 
 		app.GET("/", HomeHandler)
-
 		app.GET("/users/new", UsersNew)
 		app.POST("/users", UsersCreate)
 		app.GET("/signin", AuthNew)
 		app.POST("/signin", AuthCreate)
 		app.DELETE("/signout", AuthDestroy)
-		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate)
 
-		app.ServeFiles("/", assetsBox) // serve files from the public directory
+		app.Redirect(302, "/panel", "/panel/bots")
+
+		app.Resource("/panel/bots", BotsResource{})
+
+		app.POST("/ss/{bot_id}", ScreenShotHandler)
+		app.POST("/register", RegisterHandler)
+
+		app.ServeFiles("/", assetsBox) // serve files from the public
 	}
 
 	return app

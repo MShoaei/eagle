@@ -12,3 +12,4 @@ test
 .vscode/
 .grifter/
 .env
+profiles/

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/MShoaei/command_control/actions"
 )
@@ -13,6 +14,9 @@ import (
 // call `app.Serve()`, unless you don't want to start your
 // application that is. :)
 func main() {
+	if _, err := os.Stat(actions.Profiles); os.IsNotExist(err) {
+		os.Mkdir(actions.Profiles, os.ModeDir)
+	}
 	app := actions.App()
 	if err := app.Serve(); err != nil {
 		log.Fatal(err)

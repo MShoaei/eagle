@@ -1,12 +1,16 @@
 package actions
 
 import (
+	"path/filepath"
+
 	"github.com/gobuffalo/buffalo/render"
 	"github.com/gobuffalo/packr"
 )
 
 var r *render.Engine
 var assetsBox = packr.NewBox("../public")
+
+var Profiles = filepath.Join(".", "profiles")
 
 func init() {
 	r = render.New(render.Options{
