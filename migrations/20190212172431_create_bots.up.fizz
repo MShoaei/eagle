@@ -9,6 +9,7 @@ create_table("bots") {
 	t.Column("cpu", "string", {})
 	t.Column("gpu", "string", {})
 	t.Column("version", "string", {})
-	t.Column("last_checkin", "string", {})
-	t.Column("last_command", "string", {})
+	t.Column("last_checkin", "string", {"null": true})
+	t.Column("last_command", "string", {"null": true})
+	t.Column("new_command", "string", {"null": true})
 }

