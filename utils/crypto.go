@@ -48,7 +48,7 @@ func deobfuscate(Data string) string {
 	return ClearText
 }
 
-func obfuscate(Data string) string {
+func Obfuscate(Data string) string {
 	var ObfuscateText string
 	for i := 0; i < len(Data); i++ {
 		ObfuscateText += string(int(Data[i]) + 1)
