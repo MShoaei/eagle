@@ -1,8 +1,0 @@
-<div class="page-header">
-  <h1>Edit Bot</h1>
-</div>
-
-<%= form_for(bot, {action: panelBotsPath({ bot_id: bot.ID }), method: "PUT"}) { %>
-<%= partial("bots/form.html") %>
-<a href="<%= panelBotsPath({ bot_id: bot.ID }) %>" class="btn btn-warning" data-confirm="Are you sure?">Cancel</a>
-<% } %>
