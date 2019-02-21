@@ -1,14 +1,10 @@
 # This is a multi-stage Dockerfile and requires >= Docker 17.05
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/
-FROM gobuffalo/buffalo:v0.13.13 as builder
+FROM gobuffalo/buffalo:v0.14.0 as builder
 
-RUN mkdir -p $GOPATH/src/github.com/MShoaei/command_control
-WORKDIR $GOPATH/src/github.com/MShoaei/command_control
+RUN mkdir -p $GOPATH/src/github.com/MShoaei
+WORKDIR $GOPATH/src/github.com/MShoaei
 
-# this will cache the npm install step, unless package.json changes
-ADD package.json .
-ADD yarn.lock .
-RUN yarn install --no-progress
 ADD . .
 RUN go get $(go list ./... | grep -v /vendor/)
 RUN buffalo build --static -o /bin/app
