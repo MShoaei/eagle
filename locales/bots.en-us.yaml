@@ -1,6 +1,0 @@
-- id: "bot.created.success"
-  translation: "Bot was successfully created."
-- id: "bot.updated.success"
-  translation: "Bot was successfully updated."
-- id: "bot.destroyed.success"
-  translation: "Bot was successfully destroyed."
