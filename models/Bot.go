@@ -1,4 +1,4 @@
-package command_control
+package models
 
 type Bot struct {
 	ID          string

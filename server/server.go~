@@ -7,7 +7,6 @@ import (
 
 	"github.com/99designs/gqlgen/handler"
 	"github.com/MShoaei/command_control"
-	_ "github.com/go-chi/chi"
 )
 
 const defaultPort = "9990"

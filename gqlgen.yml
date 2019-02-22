@@ -8,10 +8,11 @@ schema:
 exec:
   filename: generated.go
 model:
-  filename: models_gen.go
+  filename: models/models_gen.go
+  package: models
 resolver:
   filename: resolver.go
   type: Resolver
 models:
   Bot:
-    model: github.com/MShoaei/command_control.Bot
+    model: github.com/MShoaei/command_control/models.Bot

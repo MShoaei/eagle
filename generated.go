@@ -11,6 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/MShoaei/command_control/models"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -56,7 +57,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateBot func(childComplexity int, input NewBot) int
+		CreateBot func(childComplexity int, input models.NewBot) int
 	}
 
 	Query struct {
@@ -66,16 +67,16 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateBot(ctx context.Context, input NewBot) (Bot, error)
+	CreateBot(ctx context.Context, input models.NewBot) (models.Bot, error)
 }
 type QueryResolver interface {
-	Bots(ctx context.Context) ([]Bot, error)
-	Bot(ctx context.Context, id string) (*Bot, error)
+	Bots(ctx context.Context) ([]models.Bot, error)
+	Bot(ctx context.Context, id string) (*models.Bot, error)
 }
 
 func field_Mutation_createBot_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
-	var arg0 NewBot
+	var arg0 models.NewBot
 	if tmp, ok := rawArgs["input"]; ok {
 		var err error
 		arg0, err = UnmarshalNewBot(tmp)
@@ -262,7 +263,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateBot(childComplexity, args["input"].(NewBot)), true
+		return e.complexity.Mutation.CreateBot(childComplexity, args["input"].(models.NewBot)), true
 
 	case "Query.bots":
 		if e.complexity.Query.Bots == nil {
@@ -332,7 +333,7 @@ type executionContext struct {
 var botImplementors = []string{"Bot"}
 
 // nolint: gocyclo, errcheck, gas, goconst
-func (ec *executionContext) _Bot(ctx context.Context, sel ast.SelectionSet, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot(ctx context.Context, sel ast.SelectionSet, obj *models.Bot) graphql.Marshaler {
 	fields := graphql.CollectFields(ctx, sel, botImplementors)
 
 	out := graphql.NewOrderedMap(len(fields))
@@ -384,7 +385,7 @@ func (ec *executionContext) _Bot(ctx context.Context, sel ast.SelectionSet, obj 
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_id(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_id(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -411,7 +412,7 @@ func (ec *executionContext) _Bot_id(ctx context.Context, field graphql.Collected
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_ip(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_ip(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -435,7 +436,7 @@ func (ec *executionContext) _Bot_ip(ctx context.Context, field graphql.Collected
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_whoAmI(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_whoAmI(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -459,7 +460,7 @@ func (ec *executionContext) _Bot_whoAmI(ctx context.Context, field graphql.Colle
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_os(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_os(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -483,7 +484,7 @@ func (ec *executionContext) _Bot_os(ctx context.Context, field graphql.Collected
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_installDate(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_installDate(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -507,7 +508,7 @@ func (ec *executionContext) _Bot_installDate(ctx context.Context, field graphql.
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_admin(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_admin(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -531,7 +532,7 @@ func (ec *executionContext) _Bot_admin(ctx context.Context, field graphql.Collec
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_av(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_av(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -555,7 +556,7 @@ func (ec *executionContext) _Bot_av(ctx context.Context, field graphql.Collected
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_cpu(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_cpu(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -579,7 +580,7 @@ func (ec *executionContext) _Bot_cpu(ctx context.Context, field graphql.Collecte
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_gpu(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_gpu(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -603,7 +604,7 @@ func (ec *executionContext) _Bot_gpu(ctx context.Context, field graphql.Collecte
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_version(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_version(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -627,7 +628,7 @@ func (ec *executionContext) _Bot_version(ctx context.Context, field graphql.Coll
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_lastCheckin(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_lastCheckin(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -651,7 +652,7 @@ func (ec *executionContext) _Bot_lastCheckin(ctx context.Context, field graphql.
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_lastCommand(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_lastCommand(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -675,7 +676,7 @@ func (ec *executionContext) _Bot_lastCommand(ctx context.Context, field graphql.
 }
 
 // nolint: vetshadow
-func (ec *executionContext) _Bot_newCommand(ctx context.Context, field graphql.CollectedField, obj *Bot) graphql.Marshaler {
+func (ec *executionContext) _Bot_newCommand(ctx context.Context, field graphql.CollectedField, obj *models.Bot) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -751,7 +752,7 @@ func (ec *executionContext) _Mutation_createBot(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateBot(rctx, args["input"].(NewBot))
+		return ec.resolvers.Mutation().CreateBot(rctx, args["input"].(models.NewBot))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -759,7 +760,7 @@ func (ec *executionContext) _Mutation_createBot(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(Bot)
+	res := resTmp.(models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
@@ -836,7 +837,7 @@ func (ec *executionContext) _Query_bots(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]Bot)
+	res := resTmp.([]models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
@@ -899,7 +900,7 @@ func (ec *executionContext) _Query_bot(ctx context.Context, field graphql.Collec
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*Bot)
+	res := resTmp.(*models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 
@@ -2419,8 +2420,8 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.___Type(ctx, field.Selections, res)
 }
 
-func UnmarshalNewBot(v interface{}) (NewBot, error) {
-	var it NewBot
+func UnmarshalNewBot(v interface{}) (models.NewBot, error) {
+	var it models.NewBot
 	var asMap = v.(map[string]interface{})
 
 	for k, v := range asMap {
