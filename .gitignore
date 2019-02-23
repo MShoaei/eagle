@@ -14,3 +14,4 @@ test
 .env
 profiles/
 scripts/
+*.exe
