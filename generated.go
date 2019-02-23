@@ -351,22 +351,49 @@ func (ec *executionContext) _Bot(ctx context.Context, sel ast.SelectionSet, obj 
 			}
 		case "ip":
 			out.Values[i] = ec._Bot_ip(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "whoAmI":
 			out.Values[i] = ec._Bot_whoAmI(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "os":
 			out.Values[i] = ec._Bot_os(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "installDate":
 			out.Values[i] = ec._Bot_installDate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "admin":
 			out.Values[i] = ec._Bot_admin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "av":
 			out.Values[i] = ec._Bot_av(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "cpu":
 			out.Values[i] = ec._Bot_cpu(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "gpu":
 			out.Values[i] = ec._Bot_gpu(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "version":
 			out.Values[i] = ec._Bot_version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		case "lastCheckin":
 			out.Values[i] = ec._Bot_lastCheckin(ctx, field, obj)
 		case "lastCommand":
@@ -427,6 +454,9 @@ func (ec *executionContext) _Bot_ip(ctx context.Context, field graphql.Collected
 		return obj.IP, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -451,6 +481,9 @@ func (ec *executionContext) _Bot_whoAmI(ctx context.Context, field graphql.Colle
 		return obj.WhoAmI, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -475,6 +508,9 @@ func (ec *executionContext) _Bot_os(ctx context.Context, field graphql.Collected
 		return obj.Os, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -499,6 +535,9 @@ func (ec *executionContext) _Bot_installDate(ctx context.Context, field graphql.
 		return obj.InstallDate, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -523,6 +562,9 @@ func (ec *executionContext) _Bot_admin(ctx context.Context, field graphql.Collec
 		return obj.Admin, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(bool)
@@ -547,6 +589,9 @@ func (ec *executionContext) _Bot_av(ctx context.Context, field graphql.Collected
 		return obj.Av, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -571,6 +616,9 @@ func (ec *executionContext) _Bot_cpu(ctx context.Context, field graphql.Collecte
 		return obj.CPU, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -595,6 +643,9 @@ func (ec *executionContext) _Bot_gpu(ctx context.Context, field graphql.Collecte
 		return obj.Gpu, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -619,6 +670,9 @@ func (ec *executionContext) _Bot_version(ctx context.Context, field graphql.Coll
 		return obj.Version, nil
 	})
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
@@ -2523,15 +2577,15 @@ var parsedSchema = gqlparser.MustLoadSchema(
 
 type Bot {
   id: ID!
-  ip: String
-  whoAmI: String
-  os: String
-  installDate: String
-  admin: Boolean
-  av: String
-  cpu: String
-  gpu: String
-  version: String
+  ip: String!
+  whoAmI: String!
+  os: String!
+  installDate: String!
+  admin: Boolean!
+  av: String!
+  cpu: String!
+  gpu: String!
+  version: String!
   lastCheckin: String
   lastCommand: String
   newCommand: String
