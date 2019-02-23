@@ -29,6 +29,22 @@
   name = "github.com/99designs/gqlgen"
   version = "0.7.2"
 
+[[constraint]]
+  name = "github.com/gobuffalo/envy"
+  version = "1.6.15"
+
+[[constraint]]
+  name = "github.com/gobuffalo/pop"
+  version = "4.9.9"
+
+[[constraint]]
+  name = "github.com/kataras/muxie"
+  version = "1.0.7"
+
+[[constraint]]
+  name = "github.com/vektah/gqlparser"
+  version = "1.1.1"
+
 [prune]
   go-tests = true
   unused-packages = true
