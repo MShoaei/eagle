@@ -540,6 +540,7 @@
     "github.com/99designs/gqlgen/handler",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/pop",
+    "github.com/gofrs/uuid",
     "github.com/kataras/muxie",
     "github.com/vektah/gqlparser",
     "github.com/vektah/gqlparser/ast",
