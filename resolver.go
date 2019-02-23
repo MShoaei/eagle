@@ -2,16 +2,18 @@ package command_control
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/gobuffalo/pop"
+	"github.com/gofrs/uuid"
 
 	"github.com/MShoaei/command_control/models"
-	"github.com/gofrs/uuid"
 )
 
+func init() {
+}
+
 type Resolver struct {
-	db *pop.Connection
+	DB *pop.Connection
 	// bots []models.Bot
 }
 
@@ -26,6 +28,10 @@ type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (models.Bot, error) {
 	newID, _ := uuid.NewV4()
+	// r.db = models.DB
+	// if err := r.DB.Open(); err != nil {
+	// 	return models.Bot{}, err
+	// }
 	bot := models.Bot{
 		ID:          newID.String(),
 		IP:          input.IP,
@@ -38,23 +44,35 @@ func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (
 		Gpu:         input.Gpu,
 		Version:     input.Version,
 	}
-	r.db.Save(bot)
-	// r.bots = append(r.bots, bot)
+	if err := r.DB.Create(&bot); err != nil {
+		return models.Bot{}, err
+	}
 	return bot, nil
 }
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
-	bots := []models.Bot{}
-	err := r.db.All(&bots)
-	if err != nil {
+	var bots []models.Bot
+	// r.db = models.DB
+	// if err := r.db.Open(); err != nil {
+	// 	return nil, err
+	// }
+
+	if err := r.DB.All(&bots); err != nil {
 		return nil, err
 	}
 	return bots, nil
 }
 func (r *queryResolver) Bot(ctx context.Context, id string) (*models.Bot, error) {
 	bot := models.Bot{}
-	r.db.Find(&bot, id)
-	return nil, fmt.Errorf("'ID' not found")
+	// r.db = models.DB
+	// if err := r.db.Open(); err != nil {
+	// 	return nil, err
+	// }
+
+	if err := r.DB.Find(&bot, id); err != nil {
+		return nil, err
+	}
+	return &bot, nil
 }
