@@ -2,15 +2,19 @@ package command_control
 
 import (
 	"context"
+	"fmt"
+	"time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gobuffalo/pop"
 	"github.com/gofrs/uuid"
 
+	"github.com/MShoaei/command_control/middlewares"
 	"github.com/MShoaei/command_control/models"
 )
-
-func init() {
-}
 
 type Resolver struct {
 	DB *pop.Connection
@@ -50,9 +54,66 @@ func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (
 	return bot, nil
 }
 
+func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (models.Admin, error) {
+	if len(password) < 8 || password != passwordConfirm {
+		return models.Admin{}, fmt.Errorf("weak password or passwords do not math")
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.Admin{}, err
+	}
+
+	newID, _ := uuid.NewV4()
+	admin := models.Admin{
+		ID:           newID.String(),
+		Username:     username,
+		PasswordHash: string(passwordHash),
+	}
+
+	if err := r.DB.Create(&admin); err != nil {
+		return models.Admin{}, err
+	}
+
+	return admin, nil
+}
+
+func (r *mutationResolver) TokenAuth(ctx context.Context, username string, password string) (string, error) {
+	admin := models.Admin{}
+
+	if err := r.DB.Where("username = ?", username).First(&admin); err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
+		return "", fmt.Errorf("incorrect Password")
+	}
+
+	claims := jwt.StandardClaims{
+		ExpiresAt: time.Now().Add(time.Minute * 30).Unix(),
+		Id:        admin.ID,
+		IssuedAt:  time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS512, claims)
+	// fmt.Println(string(middlewares.SignKey))
+	ss, err := token.SignedString(middlewares.SignKey)
+	// ss, err := token.SignedString([]byte("thisisatestsecret"))
+	if err != nil {
+		return "", err
+	}
+
+	return ss, nil
+}
+
 type queryResolver struct{ *Resolver }
 
+func (r *queryResolver) Me(ctx context.Context) (*models.Admin, error) {
+	return nil, nil
+}
+
 func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
+	// getUserID(ctx)
 	var bots []models.Bot
 	// r.db = models.DB
 	// if err := r.db.Open(); err != nil {
