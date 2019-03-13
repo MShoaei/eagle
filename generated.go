@@ -37,9 +37,15 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	IsAuthenticated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
+	Admin struct {
+		Id       func(childComplexity int) int
+		Username func(childComplexity int) int
+	}
+
 	Bot struct {
 		Id          func(childComplexity int) int
 		Ip          func(childComplexity int) int
@@ -57,10 +63,13 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateBot func(childComplexity int, input models.NewBot) int
+		CreateBot   func(childComplexity int, input models.NewBot) int
+		CreateAdmin func(childComplexity int, username string, password string, passwordConfirm string) int
+		TokenAuth   func(childComplexity int, username string, password string) int
 	}
 
 	Query struct {
+		Me   func(childComplexity int) int
 		Bots func(childComplexity int) int
 		Bot  func(childComplexity int, id string) int
 	}
@@ -68,8 +77,11 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateBot(ctx context.Context, input models.NewBot) (models.Bot, error)
+	CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (models.Admin, error)
+	TokenAuth(ctx context.Context, username string, password string) (string, error)
 }
 type QueryResolver interface {
+	Me(ctx context.Context) (*models.Admin, error)
 	Bots(ctx context.Context) ([]models.Bot, error)
 	Bot(ctx context.Context, id string) (*models.Bot, error)
 }
@@ -85,6 +97,63 @@ func field_Mutation_createBot_args(rawArgs map[string]interface{}) (map[string]i
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+
+}
+
+func field_Mutation_createAdmin_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["passwordConfirm"]; ok {
+		var err error
+		arg2, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["passwordConfirm"] = arg2
+	return args, nil
+
+}
+
+func field_Mutation_tokenAuth_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		var err error
+		arg0, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		var err error
+		arg1, err = graphql.UnmarshalString(tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
 	return args, nil
 
 }
@@ -161,6 +230,20 @@ func (e *executableSchema) Schema() *ast.Schema {
 
 func (e *executableSchema) Complexity(typeName, field string, childComplexity int, rawArgs map[string]interface{}) (int, bool) {
 	switch typeName + "." + field {
+
+	case "Admin.id":
+		if e.complexity.Admin.Id == nil {
+			break
+		}
+
+		return e.complexity.Admin.Id(childComplexity), true
+
+	case "Admin.username":
+		if e.complexity.Admin.Username == nil {
+			break
+		}
+
+		return e.complexity.Admin.Username(childComplexity), true
 
 	case "Bot.id":
 		if e.complexity.Bot.Id == nil {
@@ -265,6 +348,37 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateBot(childComplexity, args["input"].(models.NewBot)), true
 
+	case "Mutation.createAdmin":
+		if e.complexity.Mutation.CreateAdmin == nil {
+			break
+		}
+
+		args, err := field_Mutation_createAdmin_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAdmin(childComplexity, args["username"].(string), args["password"].(string), args["passwordConfirm"].(string)), true
+
+	case "Mutation.tokenAuth":
+		if e.complexity.Mutation.TokenAuth == nil {
+			break
+		}
+
+		args, err := field_Mutation_tokenAuth_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.TokenAuth(childComplexity, args["username"].(string), args["password"].(string)), true
+
+	case "Query.me":
+		if e.complexity.Query.Me == nil {
+			break
+		}
+
+		return e.complexity.Query.Me(childComplexity), true
+
 	case "Query.bots":
 		if e.complexity.Query.Bots == nil {
 			break
@@ -328,6 +442,95 @@ func (e *executableSchema) Subscription(ctx context.Context, op *ast.OperationDe
 type executionContext struct {
 	*graphql.RequestContext
 	*executableSchema
+}
+
+var adminImplementors = []string{"Admin"}
+
+// nolint: gocyclo, errcheck, gas, goconst
+func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, obj *models.Admin) graphql.Marshaler {
+	fields := graphql.CollectFields(ctx, sel, adminImplementors)
+
+	out := graphql.NewOrderedMap(len(fields))
+	invalid := false
+	for i, field := range fields {
+		out.Keys[i] = field.Alias
+
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Admin")
+		case "id":
+			out.Values[i] = ec._Admin_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "username":
+			out.Values[i] = ec._Admin_username(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+
+	if invalid {
+		return graphql.Null
+	}
+	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Admin_id(ctx context.Context, field graphql.CollectedField, obj *models.Admin) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Admin",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalID(res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Admin_username(ctx context.Context, field graphql.CollectedField, obj *models.Admin) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Admin",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Username, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
 }
 
 var botImplementors = []string{"Bot"}
@@ -776,6 +979,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "createAdmin":
+			out.Values[i] = ec._Mutation_createAdmin(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
+		case "tokenAuth":
+			out.Values[i] = ec._Mutation_tokenAuth(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -821,6 +1034,73 @@ func (ec *executionContext) _Mutation_createBot(ctx context.Context, field graph
 	return ec._Bot(ctx, field.Selections, &res)
 }
 
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_createAdmin(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_createAdmin_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateAdmin(rctx, args["username"].(string), args["password"].(string), args["passwordConfirm"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.Admin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	return ec._Admin(ctx, field.Selections, &res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Mutation_tokenAuth(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Mutation_tokenAuth_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Mutation",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().TokenAuth(rctx, args["username"].(string), args["password"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return graphql.MarshalString(res)
+}
+
 var queryImplementors = []string{"Query"}
 
 // nolint: gocyclo, errcheck, gas, goconst
@@ -840,6 +1120,12 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "me":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_me(ctx, field)
+				wg.Done()
+			}(i, field)
 		case "bots":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
@@ -868,6 +1154,35 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   nil,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Me(rctx)
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Admin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Admin(ctx, field.Selections, res)
 }
 
 // nolint: vetshadow
@@ -2547,6 +2862,18 @@ func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}
 			ret = nil
 		}
 	}()
+	rctx := graphql.GetResolverContext(ctx)
+	for _, d := range rctx.Field.Definition.Directives {
+		switch d.Name {
+		case "IsAuthenticated":
+			if ec.directives.IsAuthenticated != nil {
+				n := next
+				next = func(ctx context.Context) (interface{}, error) {
+					return ec.directives.IsAuthenticated(ctx, obj, n)
+				}
+			}
+		}
+	}
 	res, err := ec.ResolverMiddleware(ctx, next)
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2570,46 +2897,61 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "schema.graphql", Input: `schema {
-  query: Query
-  mutation: Mutation
+	&ast.Source{Name: "schema.graphql", Input: `directive @IsAuthenticated on QUERY | FIELD
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Admin {
+    id: ID!
+    username: String!
 }
 
 type Bot {
-  id: ID!
-  ip: String!
-  whoAmI: String!
-  os: String!
-  installDate: String!
-  admin: Boolean!
-  av: String!
-  cpu: String!
-  gpu: String!
-  version: String!
-  lastCheckin: String
-  lastCommand: String
-  newCommand: String
+    id: ID!
+    ip: String!
+    whoAmI: String!
+    os: String!
+    installDate: String!
+    admin: Boolean!
+    av: String!
+    cpu: String!
+    gpu: String!
+    version: String!
+    lastCheckin: String
+    lastCommand: String
+    newCommand: String
 }
 
 input NewBot {
-  ip: String!
-  whoAmI: String!
-  os: String!
-  installDate: String!
-  admin: Boolean!
-  av: String!
-  cpu: String!
-  gpu: String!
-  version: String!
+    ip: String!
+    whoAmI: String!
+    os: String!
+    installDate: String!
+    admin: Boolean!
+    av: String!
+    cpu: String!
+    gpu: String!
+    version: String!
 }
 
 type Query {
-  bots: [Bot!]!
-  bot(id: ID!): Bot
+    me: Admin @IsAuthenticated
+    bots: [Bot!]! @IsAuthenticated
+    bot(id: ID!): Bot
 }
 
 type Mutation {
-  createBot(input: NewBot!): Bot!
+    createBot(input: NewBot!): Bot!
+    createAdmin(
+        username: String!
+        password: String!
+        passwordConfirm: String!
+    ): Admin! @IsAuthenticated
+    tokenAuth(username: String!, password: String!): String!
+    # verifyToken(token: String!):
 }
 `},
 )

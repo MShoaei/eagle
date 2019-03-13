@@ -16,3 +16,5 @@ resolver:
 models:
   Bot:
     model: github.com/MShoaei/command_control/models.Bot
+  Admin:
+    model: github.com/MShoaei/command_control/models.Admin
