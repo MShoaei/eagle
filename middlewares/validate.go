@@ -14,8 +14,8 @@ const (
 )
 
 var (
-	signKeyByte, _   = ioutil.ReadFile(`..\keys\app.rsa`)
-	verifyKeyByte, _ = ioutil.ReadFile(`..\keys\app.rsa.pub`)
+	signKeyByte, _   = ioutil.ReadFile(`keys/private_key.pem`)
+	verifyKeyByte, _ = ioutil.ReadFile(`keys/public_key.pem`)
 
 	SignKey, _   = jwt.ParseRSAPrivateKeyFromPEM(signKeyByte)
 	VerifyKey, _ = jwt.ParseRSAPublicKeyFromPEM(verifyKeyByte)

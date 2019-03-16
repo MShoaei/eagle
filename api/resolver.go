@@ -1,4 +1,4 @@
-package command_control
+package api
 
 import (
 	"context"
@@ -30,7 +30,7 @@ func (r *Resolver) Query() QueryResolver {
 
 type mutationResolver struct{ *Resolver }
 
-func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (models.Bot, error) {
+func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (*models.Bot, error) {
 	newID, _ := uuid.NewV4()
 	// r.db = models.DB
 	// if err := r.DB.Open(); err != nil {
@@ -49,19 +49,19 @@ func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (
 		Version:     input.Version,
 	}
 	if err := r.DB.Create(&bot); err != nil {
-		return models.Bot{}, err
+		return &models.Bot{}, err
 	}
-	return bot, nil
+	return &bot, nil
 }
 
-func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (models.Admin, error) {
+func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (*models.Admin, error) {
 	if len(password) < 8 || password != passwordConfirm {
-		return models.Admin{}, fmt.Errorf("weak password or passwords do not math")
+		return &models.Admin{}, fmt.Errorf("weak password or passwords do not math")
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return models.Admin{}, err
+		return &models.Admin{}, err
 	}
 
 	newID, _ := uuid.NewV4()
@@ -72,10 +72,10 @@ func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, pas
 	}
 
 	if err := r.DB.Create(&admin); err != nil {
-		return models.Admin{}, err
+		return &models.Admin{}, err
 	}
 
-	return admin, nil
+	return &admin, nil
 }
 
 func (r *mutationResolver) TokenAuth(ctx context.Context, username string, password string) (string, error) {

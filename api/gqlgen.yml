@@ -8,7 +8,7 @@ schema:
 exec:
   filename: generated.go
 model:
-  filename: models/models_gen.go
+  filename: ../models/models_gen.go
   package: models
 resolver:
   filename: resolver.go

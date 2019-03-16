@@ -9,7 +9,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/MShoaei/command_control"
+	"github.com/MShoaei/command_control/api"
 	"github.com/MShoaei/command_control/middlewares"
 	"github.com/MShoaei/command_control/models"
 	"github.com/dgrijalva/jwt-go"
@@ -21,7 +21,7 @@ const defaultPort = "9990"
 
 func main() {
 	mux := muxie.NewMux()
-	cfg := command_control.Config{Resolvers: &command_control.Resolver{DB: models.DB}}
+	cfg := api.Config{Resolvers: &api.Resolver{DB: models.DB}}
 
 	cfg.Directives.IsAuthenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
 		tokenString := ctx.Value(middlewares.AuthToken("Authorization")).(string)
@@ -51,7 +51,7 @@ func main() {
 			handler.Playground("GraphQL playground", "/api")))
 	mux.Handle("/api", muxie.Methods().
 		Handle(http.MethodPost,
-			handler.GraphQL(command_control.NewExecutableSchema(cfg))))
+			handler.GraphQL(api.NewExecutableSchema(cfg))))
 
 	port := os.Getenv("PORT")
 	if port == "" {
