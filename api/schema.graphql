@@ -40,7 +40,8 @@ input NewBot {
 type Query {
   me: Admin @IsAuthenticated
   bots: [Bot!]! @IsAuthenticated
-  bot(id: ID!): Bot
+  bot(id: ID!): Bot @IsAuthenticated
+  getCommand(id: ID!, done: Boolean!): String!
 }
 
 type Mutation {
@@ -49,7 +50,7 @@ type Mutation {
     username: String!
     password: String!
     passwordConfirm: String!
-  ): Admin!
+  ): Admin! @IsAuthenticated
   tokenAuth(username: String!, password: String!): String!
   # verifyToken(token: String!):
 }

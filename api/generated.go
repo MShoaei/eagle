@@ -71,9 +71,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Bot  func(childComplexity int, id string) int
-		Bots func(childComplexity int) int
-		Me   func(childComplexity int) int
+		Bot        func(childComplexity int, id string) int
+		Bots       func(childComplexity int) int
+		GetCommand func(childComplexity int, id string, done bool) int
+		Me         func(childComplexity int) int
 	}
 }
 
@@ -86,6 +87,7 @@ type QueryResolver interface {
 	Me(ctx context.Context) (*models.Admin, error)
 	Bots(ctx context.Context) ([]models.Bot, error)
 	Bot(ctx context.Context, id string) (*models.Bot, error)
+	GetCommand(ctx context.Context, id string, done bool) (string, error)
 }
 
 type executableSchema struct {
@@ -263,6 +265,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Bots(childComplexity), true
 
+	case "Query.GetCommand":
+		if e.complexity.Query.GetCommand == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCommand_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCommand(childComplexity, args["id"].(string), args["done"].(bool)), true
+
 	case "Query.Me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -401,7 +415,8 @@ input NewBot {
 type Query {
   me: Admin @IsAuthenticated
   bots: [Bot!]! @IsAuthenticated
-  bot(id: ID!): Bot
+  bot(id: ID!): Bot @IsAuthenticated
+  getCommand(id: ID!, done: Boolean!): String!
 }
 
 type Mutation {
@@ -410,7 +425,7 @@ type Mutation {
     username: String!
     password: String!
     passwordConfirm: String!
-  ): Admin!
+  ): Admin! @IsAuthenticated
   tokenAuth(username: String!, password: String!): String!
   # verifyToken(token: String!):
 }
@@ -512,6 +527,28 @@ func (ec *executionContext) field_Query_bot_args(ctx context.Context, rawArgs ma
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCommand_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["done"]; ok {
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["done"] = arg1
 	return args, nil
 }
 
@@ -1125,6 +1162,40 @@ func (ec *executionContext) _Query_bot(ctx context.Context, field graphql.Collec
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOBot2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getCommand(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getCommand_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCommand(rctx, args["id"].(string), args["done"].(bool))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2287,6 +2358,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_bot(ctx, field)
+				return res
+			})
+		case "getCommand":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCommand(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
 				return res
 			})
 		case "__type":
