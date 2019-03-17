@@ -9,9 +9,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/MShoaei/command_control/api"
-	"github.com/MShoaei/command_control/middlewares"
-	"github.com/MShoaei/command_control/models"
+	"github.com/MShoaei/eagle/api"
+	"github.com/MShoaei/eagle/middlewares"
+	"github.com/MShoaei/eagle/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 	"github.com/kataras/muxie"

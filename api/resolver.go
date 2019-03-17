@@ -12,8 +12,8 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gofrs/uuid"
 
-	"github.com/MShoaei/command_control/middlewares"
-	"github.com/MShoaei/command_control/models"
+	"github.com/MShoaei/eagle/middlewares"
+	"github.com/MShoaei/eagle/models"
 )
 
 type Resolver struct {
@@ -127,13 +127,17 @@ func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
 }
 func (r *queryResolver) Bot(ctx context.Context, id string) (*models.Bot, error) {
 	bot := models.Bot{}
-	// r.db = models.DB
-	// if err := r.db.Open(); err != nil {
-	// 	return nil, err
-	// }
 
 	if err := r.DB.Find(&bot, id); err != nil {
 		return nil, err
 	}
 	return &bot, nil
+}
+
+func (r *queryResolver) GetCommand(ctx context.Context, id string, done bool) (string, error) {
+	cmd := models.Bot{}
+	if err := r.DB.Select("new_command").Find(&cmd, id); err != nil {
+		return "", err
+	}
+	return cmd.NewCommand, nil
 }

@@ -11,7 +11,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/MShoaei/command_control/models"
+	"github.com/MShoaei/eagle/models"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
