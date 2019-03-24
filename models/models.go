@@ -3,19 +3,16 @@ package models
 import (
 	"log"
 
-	"github.com/gobuffalo/envy"
-	"github.com/gobuffalo/pop"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres" // driver
 )
 
-var DB *pop.Connection
+var DB *gorm.DB
 
 func init() {
-
 	var err error
-	env := envy.Get("GO_ENV", "development")
-	DB, err = pop.Connect(env)
+	DB, err = gorm.Open("postgres", "host=db user=ms dbname=ms password=asusmhdsh sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
-	pop.Debug = env == "development"
 }
