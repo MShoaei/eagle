@@ -17,7 +17,7 @@ import (
 	"github.com/kataras/muxie"
 )
 
-const defaultPort = "9990"
+const defaultPort = "3000"
 
 func main() {
 	mux := muxie.NewMux()
@@ -57,6 +57,8 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	defer models.DB.Close()
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
