@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/dgrijalva/jwt-go"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/gobuffalo/pop"
 	"github.com/gofrs/uuid"
 
 	"github.com/MShoaei/eagle/middlewares"
@@ -17,7 +18,7 @@ import (
 )
 
 type Resolver struct {
-	DB *pop.Connection
+	DB *gorm.DB
 	// bots []models.Bot
 }
 
@@ -48,7 +49,7 @@ func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (
 		Gpu:         input.Gpu,
 		Version:     input.Version,
 	}
-	if err := r.DB.Create(&bot); err != nil {
+	if err := r.DB.Create(&bot).Error; err != nil {
 		return &models.Bot{}, err
 	}
 	return &bot, nil
@@ -71,18 +72,66 @@ func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, pas
 		PasswordHash: string(passwordHash),
 	}
 
-	if err := r.DB.Create(&admin); err != nil {
+	if err := r.DB.Create(&admin).Error; err != nil {
 		return &models.Admin{}, err
 	}
 
 	return &admin, nil
 }
 
-func (r *mutationResolver) TokenAuth(ctx context.Context, username string, password string) (string, error) {
+func (r *mutationResolver) DeleteBot(ctx context.Context, id string) (bool, error) {
+	bot := models.Bot{
+		ID: id,
+	}
+
+	if err := r.DB.Where("id = ?", id).Delete(&bot).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+type queryResolver struct{ *Resolver }
+
+func (r *queryResolver) Me(ctx context.Context) (*models.Admin, error) {
+	return nil, nil
+}
+
+func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
+	// getUserID(ctx)
+	var bots []models.Bot
+	// r.db = models.DB
+	// if err := r.db.Open(); err != nil {
+	// 	return nil, err
+	// }
+
+	r.DB.Find(&bots)
+	if err := r.DB.Find(&bots).Error; err != nil {
+		return nil, err
+	}
+	return bots, nil
+}
+func (r *queryResolver) Bot(ctx context.Context, id string) (*models.Bot, error) {
+	bot := models.Bot{}
+
+	if err := r.DB.Where("id = ?", id).Find(&bot).Error; err != nil {
+		return nil, err
+	}
+	return &bot, nil
+}
+
+func (r *queryResolver) GetCommand(ctx context.Context, id string, done bool) (string, error) {
+	cmd := models.Bot{}
+	if err := r.DB.Select("new_command").Where("id = ?", id).Find(&cmd).Error; err != nil {
+		return "", err
+	}
+	return cmd.NewCommand, nil
+}
+
+func (r *queryResolver) TokenAuth(ctx context.Context, username string, password string) (string, error) {
 	admin := models.Admin{}
 
-	if err := r.DB.Where("username = ?", username).First(&admin); err != nil {
-		return "", err
+	if r.DB.Where("username = ?", username).First(&admin).RecordNotFound() {
+		return "", gorm.ErrRecordNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.PasswordHash), []byte(password)); err != nil {
@@ -104,40 +153,4 @@ func (r *mutationResolver) TokenAuth(ctx context.Context, username string, passw
 	}
 
 	return ss, nil
-}
-
-type queryResolver struct{ *Resolver }
-
-func (r *queryResolver) Me(ctx context.Context) (*models.Admin, error) {
-	return nil, nil
-}
-
-func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
-	// getUserID(ctx)
-	var bots []models.Bot
-	// r.db = models.DB
-	// if err := r.db.Open(); err != nil {
-	// 	return nil, err
-	// }
-
-	if err := r.DB.All(&bots); err != nil {
-		return nil, err
-	}
-	return bots, nil
-}
-func (r *queryResolver) Bot(ctx context.Context, id string) (*models.Bot, error) {
-	bot := models.Bot{}
-
-	if err := r.DB.Find(&bot, id); err != nil {
-		return nil, err
-	}
-	return &bot, nil
-}
-
-func (r *queryResolver) GetCommand(ctx context.Context, id string, done bool) (string, error) {
-	cmd := models.Bot{}
-	if err := r.DB.Select("new_command").Find(&cmd, id); err != nil {
-		return "", err
-	}
-	return cmd.NewCommand, nil
 }

@@ -1,4 +1,4 @@
-directive @IsAuthenticated on QUERY | FIELD
+directive @IsAuthenticated on QUERY | MUTATION | FIELD
 schema {
   query: Query
   mutation: Mutation
@@ -42,6 +42,7 @@ type Query {
   bots: [Bot!]! @IsAuthenticated
   bot(id: ID!): Bot @IsAuthenticated
   getCommand(id: ID!, done: Boolean!): String!
+  tokenAuth(username: String!, password: String!): String!
 }
 
 type Mutation {
@@ -51,6 +52,5 @@ type Mutation {
     password: String!
     passwordConfirm: String!
   ): Admin! @IsAuthenticated
-  tokenAuth(username: String!, password: String!): String!
-  # verifyToken(token: String!):
+  deleteBot(id: ID!): Boolean! @IsAuthenticated
 }

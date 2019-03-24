@@ -67,7 +67,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateAdmin func(childComplexity int, username string, password string, passwordConfirm string) int
 		CreateBot   func(childComplexity int, input models.NewBot) int
-		TokenAuth   func(childComplexity int, username string, password string) int
+		DeleteBot   func(childComplexity int, id string) int
 	}
 
 	Query struct {
@@ -75,19 +75,21 @@ type ComplexityRoot struct {
 		Bots       func(childComplexity int) int
 		GetCommand func(childComplexity int, id string, done bool) int
 		Me         func(childComplexity int) int
+		TokenAuth  func(childComplexity int, username string, password string) int
 	}
 }
 
 type MutationResolver interface {
 	CreateBot(ctx context.Context, input models.NewBot) (*models.Bot, error)
 	CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (*models.Admin, error)
-	TokenAuth(ctx context.Context, username string, password string) (string, error)
+	DeleteBot(ctx context.Context, id string) (bool, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*models.Admin, error)
 	Bots(ctx context.Context) ([]models.Bot, error)
 	Bot(ctx context.Context, id string) (*models.Bot, error)
 	GetCommand(ctx context.Context, id string, done bool) (string, error)
+	TokenAuth(ctx context.Context, username string, password string) (string, error)
 }
 
 type executableSchema struct {
@@ -234,17 +236,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateBot(childComplexity, args["input"].(models.NewBot)), true
 
-	case "Mutation.TokenAuth":
-		if e.complexity.Mutation.TokenAuth == nil {
+	case "Mutation.DeleteBot":
+		if e.complexity.Mutation.DeleteBot == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_tokenAuth_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteBot_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.TokenAuth(childComplexity, args["username"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.DeleteBot(childComplexity, args["id"].(string)), true
 
 	case "Query.Bot":
 		if e.complexity.Query.Bot == nil {
@@ -283,6 +285,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Me(childComplexity), true
+
+	case "Query.TokenAuth":
+		if e.complexity.Query.TokenAuth == nil {
+			break
+		}
+
+		args, err := ec.field_Query_tokenAuth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.TokenAuth(childComplexity, args["username"].(string), args["password"].(string)), true
 
 	}
 	return 0, false
@@ -373,7 +387,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "schema.graphql", Input: `directive @IsAuthenticated on QUERY | FIELD
+	&ast.Source{Name: "schema.graphql", Input: `directive @IsAuthenticated on QUERY | MUTATION | FIELD
 schema {
   query: Query
   mutation: Mutation
@@ -417,6 +431,7 @@ type Query {
   bots: [Bot!]! @IsAuthenticated
   bot(id: ID!): Bot @IsAuthenticated
   getCommand(id: ID!, done: Boolean!): String!
+  tokenAuth(username: String!, password: String!): String!
 }
 
 type Mutation {
@@ -426,8 +441,7 @@ type Mutation {
     password: String!
     passwordConfirm: String!
   ): Admin! @IsAuthenticated
-  tokenAuth(username: String!, password: String!): String!
-  # verifyToken(token: String!):
+  deleteBot(id: ID!): Boolean! @IsAuthenticated
 }
 `},
 )
@@ -471,7 +485,7 @@ func (ec *executionContext) field_Mutation_createBot_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 models.NewBot
 	if tmp, ok := rawArgs["input"]; ok {
-		arg0, err = ec.unmarshalNNewBot2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐNewBot(ctx, tmp)
+		arg0, err = ec.unmarshalNNewBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐNewBot(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -480,25 +494,17 @@ func (ec *executionContext) field_Mutation_createBot_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_tokenAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteBot_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["username"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["username"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["password"]; ok {
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["password"] = arg1
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -549,6 +555,28 @@ func (ec *executionContext) field_Query_getCommand_args(ctx context.Context, raw
 		}
 	}
 	args["done"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_tokenAuth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["password"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
 	return args, nil
 }
 
@@ -1011,7 +1039,7 @@ func (ec *executionContext) _Mutation_createBot(ctx context.Context, field graph
 	res := resTmp.(*models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBot2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx, field.Selections, res)
+	return ec.marshalNBot2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createAdmin(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1045,10 +1073,10 @@ func (ec *executionContext) _Mutation_createAdmin(ctx context.Context, field gra
 	res := resTmp.(*models.Admin)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNAdmin2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalNAdmin2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_tokenAuth(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+func (ec *executionContext) _Mutation_deleteBot(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -1059,7 +1087,7 @@ func (ec *executionContext) _Mutation_tokenAuth(ctx context.Context, field graph
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_tokenAuth_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteBot_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1068,7 +1096,7 @@ func (ec *executionContext) _Mutation_tokenAuth(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().TokenAuth(rctx, args["username"].(string), args["password"].(string))
+		return ec.resolvers.Mutation().DeleteBot(rctx, args["id"].(string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1076,10 +1104,10 @@ func (ec *executionContext) _Mutation_tokenAuth(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(bool)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1103,7 +1131,7 @@ func (ec *executionContext) _Query_me(ctx context.Context, field graphql.Collect
 	res := resTmp.(*models.Admin)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOAdmin2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalOAdmin2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_bots(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1130,7 +1158,7 @@ func (ec *executionContext) _Query_bots(ctx context.Context, field graphql.Colle
 	res := resTmp.([]models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx, field.Selections, res)
+	return ec.marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_bot(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1161,7 +1189,7 @@ func (ec *executionContext) _Query_bot(ctx context.Context, field graphql.Collec
 	res := resTmp.(*models.Bot)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOBot2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx, field.Selections, res)
+	return ec.marshalOBot2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getCommand(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -1185,6 +1213,40 @@ func (ec *executionContext) _Query_getCommand(ctx context.Context, field graphql
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().GetCommand(rctx, args["id"].(string), args["done"].(bool))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_tokenAuth(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_tokenAuth_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().TokenAuth(rctx, args["username"].(string), args["password"].(string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2293,8 +2355,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "tokenAuth":
-			out.Values[i] = ec._Mutation_tokenAuth(ctx, field)
+		case "deleteBot":
+			out.Values[i] = ec._Mutation_deleteBot(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
@@ -2369,6 +2431,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getCommand(ctx, field)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
+		case "tokenAuth":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_tokenAuth(ctx, field)
 				if res == graphql.Null {
 					invalid = true
 				}
@@ -2634,11 +2710,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAdmin2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v models.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalNAdmin2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v models.Admin) graphql.Marshaler {
 	return ec._Admin(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAdmin2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *models.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalNAdmin2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *models.Admin) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2656,11 +2732,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return graphql.MarshalBoolean(v)
 }
 
-func (ec *executionContext) marshalNBot2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v models.Bot) graphql.Marshaler {
+func (ec *executionContext) marshalNBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v models.Bot) graphql.Marshaler {
 	return ec._Bot(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v []models.Bot) graphql.Marshaler {
+func (ec *executionContext) marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v []models.Bot) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -2684,7 +2760,7 @@ func (ec *executionContext) marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋcommand_cont
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNBot2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx, sel, v[i])
+			ret[i] = ec.marshalNBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -2697,7 +2773,7 @@ func (ec *executionContext) marshalNBot2ᚕgithubᚗcomᚋMShoaeiᚋcommand_cont
 	return ret
 }
 
-func (ec *executionContext) marshalNBot2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v *models.Bot) graphql.Marshaler {
+func (ec *executionContext) marshalNBot2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v *models.Bot) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -2715,7 +2791,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return graphql.MarshalID(v)
 }
 
-func (ec *executionContext) unmarshalNNewBot2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐNewBot(ctx context.Context, v interface{}) (models.NewBot, error) {
+func (ec *executionContext) unmarshalNNewBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐNewBot(ctx context.Context, v interface{}) (models.NewBot, error) {
 	return ec.unmarshalInputNewBot(ctx, v)
 }
 
@@ -2941,11 +3017,11 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return graphql.MarshalString(v)
 }
 
-func (ec *executionContext) marshalOAdmin2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v models.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v models.Admin) graphql.Marshaler {
 	return ec._Admin(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *models.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *models.Admin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -2975,11 +3051,11 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
 }
 
-func (ec *executionContext) marshalOBot2githubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v models.Bot) graphql.Marshaler {
+func (ec *executionContext) marshalOBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v models.Bot) graphql.Marshaler {
 	return ec._Bot(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOBot2ᚖgithubᚗcomᚋMShoaeiᚋcommand_controlᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v *models.Bot) graphql.Marshaler {
+func (ec *executionContext) marshalOBot2ᚖgithubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐBot(ctx context.Context, sel ast.SelectionSet, v *models.Bot) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

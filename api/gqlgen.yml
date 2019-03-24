@@ -15,6 +15,6 @@ resolver:
   type: Resolver
 models:
   Bot:
-    model: github.com/MShoaei/command_control/models.Bot
+    model: github.com/MShoaei/eagle/models.Bot
   Admin:
-    model: github.com/MShoaei/command_control/models.Admin
+    model: github.com/MShoaei/eagle/models.Admin
