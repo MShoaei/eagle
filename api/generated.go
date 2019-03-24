@@ -440,7 +440,7 @@ type Mutation {
     username: String!
     password: String!
     passwordConfirm: String!
-  ): Admin! @IsAuthenticated
+  ): Admin!
   deleteBot(id: ID!): Boolean! @IsAuthenticated
 }
 `},
