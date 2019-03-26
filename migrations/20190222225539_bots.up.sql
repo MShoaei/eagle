@@ -1,7 +1,7 @@
 CREATE TABLE bots(
     "id" character varying(255) PRIMARY KEY NOT NULL,
     "ip" character varying(255) NOT NULL,
-    "whoami" character varying(255) NOT NULL,
+    "who_am_i" character varying(255) NOT NULL,
     "os" character varying(255) NOT NULL,
     "install_date" character varying(255) NOT NULL,
     "admin" boolean NOT NULL,
