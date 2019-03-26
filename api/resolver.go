@@ -93,6 +93,14 @@ func (r *mutationResolver) DeleteBot(ctx context.Context, id string) (bool, erro
 	return true, nil
 }
 
+func (r *mutationResolver) SetCommand(ctx context.Context, ids []string, command string) (bool, error) {
+	bot := models.Bot{}
+	if err := r.DB.Model(&bot).Where("id IN (?)", ids).UpdateColumn("new_command", command).Error; err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Me(ctx context.Context) (*models.Admin, error) {

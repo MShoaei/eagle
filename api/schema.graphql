@@ -53,4 +53,5 @@ type Mutation {
     passwordConfirm: String!
   ): Admin!
   deleteBot(id: ID!): Boolean! @IsAuthenticated
+  setCommand(ids: [ID!]!, command: String!): Boolean! @IsAuthenticated
 }

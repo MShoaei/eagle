@@ -68,6 +68,7 @@ type ComplexityRoot struct {
 		CreateAdmin func(childComplexity int, username string, password string, passwordConfirm string) int
 		CreateBot   func(childComplexity int, input models.NewBot) int
 		DeleteBot   func(childComplexity int, id string) int
+		SetCommand  func(childComplexity int, ids []string, command string) int
 	}
 
 	Query struct {
@@ -83,6 +84,7 @@ type MutationResolver interface {
 	CreateBot(ctx context.Context, input models.NewBot) (*models.Bot, error)
 	CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (*models.Admin, error)
 	DeleteBot(ctx context.Context, id string) (bool, error)
+	SetCommand(ctx context.Context, ids []string, command string) (bool, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*models.Admin, error)
@@ -247,6 +249,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteBot(childComplexity, args["id"].(string)), true
+
+	case "Mutation.SetCommand":
+		if e.complexity.Mutation.SetCommand == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_setCommand_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SetCommand(childComplexity, args["ids"].([]string), args["command"].(string)), true
 
 	case "Query.Bot":
 		if e.complexity.Query.Bot == nil {
@@ -442,6 +456,7 @@ type Mutation {
     passwordConfirm: String!
   ): Admin!
   deleteBot(id: ID!): Boolean! @IsAuthenticated
+  setCommand(ids: [ID!]!, command: String!): Boolean! @IsAuthenticated
 }
 `},
 )
@@ -505,6 +520,28 @@ func (ec *executionContext) field_Mutation_deleteBot_args(ctx context.Context, r
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_setCommand_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []string
+	if tmp, ok := rawArgs["ids"]; ok {
+		arg0, err = ec.unmarshalNID2ᚕstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["ids"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["command"]; ok {
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["command"] = arg1
 	return args, nil
 }
 
@@ -1097,6 +1134,40 @@ func (ec *executionContext) _Mutation_deleteBot(ctx context.Context, field graph
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteBot(rctx, args["id"].(string))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_setCommand(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_setCommand_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SetCommand(rctx, args["ids"].([]string), args["command"].(string))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2360,6 +2431,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "setCommand":
+			out.Values[i] = ec._Mutation_setCommand(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalid = true
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2789,6 +2865,35 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalID(v)
+}
+
+func (ec *executionContext) unmarshalNID2ᚕstring(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstring(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNNewBot2githubᚗcomᚋMShoaeiᚋeagleᚋmodelsᚐNewBot(ctx context.Context, v interface{}) (models.NewBot, error) {
