@@ -11,14 +11,11 @@ COPY . .
 RUN go install .
 
 FROM nginx:alpine
-COPY --from=go /go/bin/eagle /go/bin/eagle
 COPY --from=go /go/src/github.com/MShoaei/eagle/keys /go/bin/keys
+COPY --from=go /go/bin/eagle /go/bin/eagle
 COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./passwd /go/bin/
 COPY entrypoint.sh /go/bin/
 WORKDIR /go/bin
 RUN chmod +x entrypoint.sh
-# ENTRYPOINT [ "entrypoint.sh" ]
-EXPOSE 3000
 CMD "./entrypoint.sh"
-
-# CMD [ "nginx", "-g", "daemon off;" ]

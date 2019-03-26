@@ -17,3 +17,6 @@ scripts/
 *.exe
 keys/
 .fandogh/
+*.exe
+eagle
+passwd
