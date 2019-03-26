@@ -2,7 +2,22 @@ package middlewares
 
 import (
 	"context"
+	"io/ioutil"
 	"net/http"
+
+	"github.com/dgrijalva/jwt-go"
+)
+
+const (
+	production = true
+)
+
+var (
+	signKeyByte, _   = ioutil.ReadFile(`keys/private_key.pem`)
+	verifyKeyByte, _ = ioutil.ReadFile(`keys/public_key.pem`)
+
+	SignKey, _   = jwt.ParseRSAPrivateKeyFromPEM(signKeyByte)
+	VerifyKey, _ = jwt.ParseRSAPublicKeyFromPEM(verifyKeyByte)
 )
 
 type AuthToken string
